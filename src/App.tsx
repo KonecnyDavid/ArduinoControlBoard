@@ -1,19 +1,39 @@
-import React from "react";
-import logo from "./logo.svg";
+import React, { useState, useEffect } from "react";
+import "react-loader-spinner/dist/loader/css/react-spinner-loader.css"
 import { Button, Card, Menu } from "semantic-ui-react";
 import "./App.css";
 import "semantic-ui-css/semantic.min.css";
+import Loader, { useLoading } from './component/Loader/index';
 const { ipcRenderer } = window.require("electron");
 
 interface ComponentClickedEvent {
     type: string, name: string, value: any
 }
 
-const App = () => {
+type LoadingFunction = (...args: any[]) => any;
 
-    const onComponentClick = (event: ComponentClickedEvent) => {
-        ipcRenderer.send("componentClicked", event)
+
+const App = () => {
+    const [loading, setLoading] = useState(false);
+    const withLoading = (closure: LoadingFunction) => {
+        return (...args: any[]) => {
+            setLoading(true);
+            console.log("pre")
+            closure(...args);
+            console.log("post")
+            setLoading(false);
+        }
     }
+
+    const onComponentClick = withLoading((event: ComponentClickedEvent) => {
+        ipcRenderer.sendSync("componentClicked", event)
+    })
+
+    useEffect(withLoading(() => {
+        for (let index = 0; index < 1000000; index++) {
+            
+        }
+    }))
 
     return (
         <div className="App" style={{ padding: "1rem"}}>
@@ -42,6 +62,7 @@ const App = () => {
                         </Button>
                     </div>
                 </Card.Content>
+                <Loader display={loading}></Loader>
             </Card>
         </div>
     );

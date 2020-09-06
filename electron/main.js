@@ -7,6 +7,10 @@ const port = new SerialPort('COM6', {
   baudRate: 9600
 });
 
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
 function createWindow() {
     const startUrl =
         process.env.ELECTRON_START_URL ||
@@ -15,15 +19,17 @@ function createWindow() {
             protocol: "file:",
             slashes: true,
         });
-    mainWindow = new BrowserWindow({ width: 800, height: 600, webPreferences: {nodeIntegration: true, devTools: false} });
+    mainWindow = new BrowserWindow({ width: 800, height: 600, webPreferences: {nodeIntegration: true, devTools: true} });
     mainWindow.loadURL(startUrl);
+    mainWindow.webContents.openDevTools()
     mainWindow.on("closed", function () {
         mainWindow = null;
     });
 
-    ipcMain.on("componentClicked", (event, args) => {
-        console.log(args);
+    ipcMain.on("componentClicked", async (event, args) => {
         port.write("0");
+        await sleep(1000)
+        event.returnValue = 'ok';
     });
 }
 app.on("ready", createWindow);
